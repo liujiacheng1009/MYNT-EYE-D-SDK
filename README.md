@@ -30,6 +30,10 @@ API reference and the guide documentations.
   * [Windows 源码安装](https://mynt-eye-d-sdk.rtfd.io/zh_CN/latest/sdk/install_win_src.html)
     * [Windows EXE 安装](https://mynt-eye-d-sdk.rtfd.io/zh_CN/latest/sdk/install_win_exe.html)
 
+### Local Verification
+
+* [SDK and ROS 2 verification commands](VERIFICATION.md)
+
 ## Mirrors
 
 国内镜像：[码云](https://gitee.com/mynt/MYNT-EYE-D-SDK)。
