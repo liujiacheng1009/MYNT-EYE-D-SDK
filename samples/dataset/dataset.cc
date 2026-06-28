@@ -70,22 +70,25 @@ void Dataset::SaveMotionData(const MYNTEYE_NAMESPACE::MotionData &data) {
 void Dataset::SaveStreamData(const ImageType &type,
     const MYNTEYE_NAMESPACE::StreamData &data) {
   auto &&writer = GetStreamWriter(type);
-  auto seq = stream_count_[type];
+  auto seq = stream_count_[type]++;
 
   if (data.img_info) {
     writer->ofs << seq << ", " << data.img_info->frame_id << ", "
       << data.img_info->timestamp << ", "
       << data.img_info->exposure_time << std::endl;
-    ++stream_count_[type];
+  } else {
+    writer->ofs << seq << ", 0, 0, 0" << std::endl;
   }
 
   if (data.img) {
-    static std::uint64_t count = 0;
-    ++count;
     std::stringstream ss;
     ss << writer->outdir << MYNTEYE_OS_SEP << std::dec
        << std::setw(IMAGE_FILENAME_WIDTH) << std::setfill('0') << seq << ".png";
-    cv::imwrite(ss.str(), data.img->To(ImageFormat::COLOR_BGR)->ToMat());
+    if (type == ImageType::IMAGE_DEPTH) {
+      cv::imwrite(ss.str(), data.img->To(ImageFormat::DEPTH_RAW)->ToMat());
+    } else {
+      cv::imwrite(ss.str(), data.img->To(ImageFormat::COLOR_BGR)->ToMat());
+    }
   }
 }
 
@@ -118,6 +121,9 @@ Dataset::writer_t Dataset::GetStreamWriter(const ImageType &type) {
       } break;
       case ImageType::IMAGE_RIGHT_COLOR: {
         writer->outdir = outdir_ + MYNTEYE_OS_SEP "right";
+      } break;
+      case ImageType::IMAGE_DEPTH: {
+        writer->outdir = outdir_ + MYNTEYE_OS_SEP "depth";
       } break;
       default:
         std::cout << "Unsupported ImageType." << std::endl;

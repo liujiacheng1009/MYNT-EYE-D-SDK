@@ -15,6 +15,7 @@
 #define MYNTEYE_STUBS_TYPES_CALIB_H_
 #pragma once
 
+#include <cstdint>
 #include <ostream>
 
 #include "mynteyed/stubs/global.h"

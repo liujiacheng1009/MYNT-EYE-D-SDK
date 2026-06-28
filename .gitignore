@@ -24,6 +24,9 @@ _install/
 /wrappers/ros/install
 /wrappers/ros/.catkin_workspace
 /wrappers/ros/src/CMakeLists.txt
+/wrappers/ros2/build/
+/wrappers/ros2/install/
+/wrappers/ros2/log/
 /wrappers/beta_ros/build
 /wrappers/beta_ros/devel
 /wrappers/beta_ros/install
@@ -47,4 +50,5 @@ _install/
 
 /dataset/
 /mynteye/
+/recordings/
 /*.bag

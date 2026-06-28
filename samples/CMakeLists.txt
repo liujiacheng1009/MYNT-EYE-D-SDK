@@ -23,6 +23,7 @@ include(${PRO_DIR}/cmake/Common.cmake)
 
 option(DEBUG "Enable Debug Log" OFF)
 option(TIMECOST "Enable Time Cost" OFF)
+option(BUILD_PCL_SAMPLES "Build PCL point cloud samples" OFF)
 
 add_definitions(-DLOG_TAG=MYNTEYE)
 
@@ -191,6 +192,7 @@ make_executable(auto_restart
   DLL_SEARCH_PATHS ${MYNTEYE_DLL_SEARCH_PATHS}
 )
 
+if(BUILD_PCL_SAMPLES)
 find_package(PCL)
 if(PCL_FOUND)
   #list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
@@ -230,6 +232,7 @@ if(PCL_FOUND)
     LINK_LIBS mynteye_depth ${OpenCV_LIBS} ${PCL_LIBRARIES}
     DLL_SEARCH_PATHS ${MYNTEYE_DLL_SEARCH_PATHS}
   )
+endif()
 endif()
 
 # targets

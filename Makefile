@@ -18,6 +18,7 @@ include CommonDefs.mk
 
 SUDO ?= sudo
 CMAKE_BUILD_EXTRA_OPTIONS ?=
+INSTALL_PREFIX ?= $(MKFILE_DIR)/_install
 
 .DEFAULT_GOAL := all
 
@@ -26,10 +27,15 @@ help:
 	@echo "Usage:"
 	@echo "  make help      show help message"
 	@echo "  make init      init project"
+	@echo "  make deps-u24  install Ubuntu 24.x OpenCV/ROS 2 deps"
 	@echo "  make build     build project"
 	@echo "  make install   build and install"
 	@echo "  make samples   build samples"
 	@echo "  make ros       build ros wrapper"
+	@echo "  make ros2      build ros2 wrapper"
+	@echo "  make record-native   record SDK camera/depth/IMU files"
+	@echo "  make record-ros2-bag record ROS 2 camera/depth/IMU bag"
+	@echo "  make record-ros1-bag record ROS 1 camera/depth/IMU bag"
 	@echo "  make apidoc    build api doc"
 	@echo "  make pkg       package sdk"
 	@echo "  make clean     clean"
@@ -46,6 +52,12 @@ all: init samples ros
 submodules:
 	@git submodule update --init
 
+deps-u24:
+	@$(call echo,Make $@)
+	@$(SH) ./scripts/install_u24_deps.sh
+
+.PHONY: deps-u24
+
 # init
 
 init:
@@ -61,7 +73,7 @@ build:
 ifeq ($(HOST_OS),Win)
 	@$(call cmake_build,./_build,..,-DCMAKE_INSTALL_PREFIX=$(MKFILE_DIR)/_install $(CMAKE_BUILD_EXTRA_OPTIONS))
 else
-	@$(call cmake_build,./_build,..,$(CMAKE_BUILD_EXTRA_OPTIONS))
+	@$(call cmake_build,./_build,..,-DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) $(CMAKE_BUILD_EXTRA_OPTIONS))
 endif
 
 .PHONY: build
@@ -78,7 +90,7 @@ else
 endif
 else
 ifeq ($(HOST_OS),Linux)
-	@cd ./_build; $(SUDO) make install
+	@cd ./_build; make install
 else
 	@cd ./_build; make install
 endif
@@ -89,11 +101,15 @@ endif
 uninstall:
 	@$(call echo,Make $@)
 ifeq ($(HOST_OS),Linux)
+ifneq ($(INSTALL_PREFIX),/usr/local)
+	$(call rm,$(INSTALL_PREFIX))
+else
 	$(SUDO) rm -rf /usr/local/include/mynteyed/
 	$(SUDO) rm -rf /usr/local/lib/libmynteye_depth.so*
 	$(SUDO) rm -rf /usr/local/lib/3rdparty/libeSPDI.so*
 	$(SUDO) rm -rf /usr/local/lib/cmake/mynteyed/
 	$(SUDO) rm -rf /usr/local/share/mynteyed/
+endif
 endif
 
 .PHONY: uninstall
@@ -102,7 +118,13 @@ endif
 
 samples: install
 	@$(call echo,Make $@)
-	@$(call cmake_build,./samples/_build)
+	@if [ -f ./_install/lib/cmake/mynteyed/mynteyed-config.cmake ] && \
+		grep -q "set(mynteyed_WITH_OPENCV FALSE)" ./_install/lib/cmake/mynteyed/mynteyed-config.cmake; then \
+		$(ECHO) "Skip samples: OpenCV was not found when building SDK."; \
+		$(ECHO) "Install libopencv-dev and rerun make samples to build sample programs."; \
+	else \
+		$(call cmake_build,./samples/_build); \
+	fi
 
 .PHONY: samples
 
@@ -111,7 +133,14 @@ samples: install
 ros: install
 ifeq ($(HOST_OS),Linux)
 	@$(call echo,Make $@)
-	@cd ./wrappers/ros && catkin_make
+	@if command -v catkin_make >/dev/null 2>&1; then \
+		cd ./wrappers/ros && catkin_make; \
+	elif command -v ros2 >/dev/null 2>&1 || [ -n "$${AMENT_PREFIX_PATH}" ]; then \
+		$(ECHO) "Skip ros: this repository contains a ROS 1 catkin/nodelet wrapper."; \
+		$(ECHO) "Build the ROS 2 rclcpp wrapper from wrappers/ros2 with colcon."; \
+	else \
+		$(ECHO) "Skip ros: catkin_make not found. Install/source ROS 1 before running make ros."; \
+	fi
 endif
 
 cleanros:
@@ -123,6 +152,37 @@ cleanros:
 	@$(call rm,./wrappers/ros/src/CMakeLists.txt)
 
 .PHONY: ros cleanros
+
+ros2: install
+ifeq ($(HOST_OS),Linux)
+	@$(call echo,Make $@)
+	@if [ -f "$${ROS_SETUP:-/opt/ros/jazzy/setup.bash}" ]; then \
+		. "$${ROS_SETUP:-/opt/ros/jazzy/setup.bash}"; \
+	fi; \
+	cd ./wrappers/ros2 && colcon build --symlink-install
+endif
+
+.PHONY: ros2
+
+record-native: samples
+ifeq ($(HOST_OS),Linux)
+	@$(call echo,Make $@)
+	@./scripts/record_native.sh
+endif
+
+record-ros2-bag: ros2
+ifeq ($(HOST_OS),Linux)
+	@$(call echo,Make $@)
+	@./scripts/record_ros2_bag.sh
+endif
+
+record-ros1-bag: ros
+ifeq ($(HOST_OS),Linux)
+	@$(call echo,Make $@)
+	@./scripts/record_ros1_bag.sh
+endif
+
+.PHONY: record-native record-ros2-bag record-ros1-bag
 
 # doc
 

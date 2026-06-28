@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "mynteyed/util/log.h"
 #include "mynteyed/internal/location.h"
 
@@ -73,18 +75,18 @@ void Location::OnGPSDataCallback(const GPSDataPacket& packet) {
   float longitude_cent_tmp, longitude_second_tmp;
 
   gps->latitude_degree =
-    fabs(gps->latitude / 100); // separate latitude
+    std::fabs(gps->latitude / 100); // separate latitude
   latitude_cent_tmp = gps->latitude - gps->latitude_degree * 100;
-  gps->latitude_cent = fabs(latitude_cent_tmp);
+  gps->latitude_cent = std::fabs(latitude_cent_tmp);
   latitude_second_tmp = (latitude_cent_tmp - gps->latitude_cent) * 60;
-  gps->latitude_second = fabs(latitude_second_tmp);
+  gps->latitude_second = std::fabs(latitude_second_tmp);
 
   gps->longitude_degree =
-    fabs(gps->longitude / 100); // separate latitude
+    std::fabs(gps->longitude / 100); // separate latitude
   longitude_cent_tmp = gps->longitude - gps->longitude_degree * 100;
-  gps->longitude_cent = fabs(longitude_cent_tmp);
+  gps->longitude_cent = std::fabs(longitude_cent_tmp);
   longitude_second_tmp = (longitude_cent_tmp - gps->longitude_cent) * 60;
-  gps->longitude_second = fabs(longitude_second_tmp);
+  gps->longitude_second = std::fabs(longitude_second_tmp);
 
   /*
   if (location_count_ < 20) {
