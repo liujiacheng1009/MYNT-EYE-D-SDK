@@ -67,7 +67,7 @@ class MYNTEYE_API TemporalFilter : public BaseFilter{
           _last_frame[i] = cur_val;
           history[i] = mask;
         } else {  // old and new val
-        T diff = static_cast<T>(fabs(cur_val - prev_val));
+        T diff = static_cast<T>(std::fabs(cur_val - prev_val));
           if (diff < delta_z) {  // old and new val agree
             history[i] |= mask;
             float filtered =

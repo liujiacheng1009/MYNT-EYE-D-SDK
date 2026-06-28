@@ -131,7 +131,7 @@ int main(int argc, char const* argv[]) {
       depth_region.DrawRect(depth);
       cv::Mat res_org;
       cv::normalize(depth, res_org, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-#ifdef WITH_OPENCV3
+#if defined(WITH_OPENCV3) || defined(WITH_OPENCV4)
       // ColormapTypes
       //   http://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
       cv::applyColorMap(res_org, res_org, cv::COLORMAP_JET);
@@ -141,7 +141,7 @@ int main(int argc, char const* argv[]) {
       temp_filter.ProcessFrame(image_depth.img, image_depth.img);
       cv::Mat res;
       cv::normalize(depth, res, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-#ifdef WITH_OPENCV3
+#if defined(WITH_OPENCV3) || defined(WITH_OPENCV4)
       // ColormapTypes
       //   http://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
       cv::applyColorMap(res, res, cv::COLORMAP_JET);

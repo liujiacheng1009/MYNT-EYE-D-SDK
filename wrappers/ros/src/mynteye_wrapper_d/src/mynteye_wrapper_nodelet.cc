@@ -632,7 +632,7 @@ class MYNTEYEWrapperNodelet : public nodelet::Nodelet {
       header.frame_id = mono_frame_id;
 
       cv::Mat dst;
-      cv::cvtColor(mat, dst, CV_BGR2GRAY);
+      cv::cvtColor(mat, dst, cv::COLOR_BGR2GRAY);
       auto&& msg = cv_bridge::CvImage(header, enc::MONO8, dst).toImageMsg();
       pub_mono.publish(msg);
     }

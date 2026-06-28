@@ -13,7 +13,11 @@
 // limitations under the License.
 
 #pragma once
+#include <cmath>
+#include <functional>
+#include <limits>
 #include <mutex>
+#include <type_traits>
 #include <vector>
 #include <memory>
 #include "mynteyed/filter/base_filter.h"
@@ -83,10 +87,10 @@ class MYNTEYE_API SpatialFilter : public BaseFilter {
       for (u = 1; u < _width - 1; u++) {
         T val1 = im[1];
 
-        if (fabs(val0) >= valid_threshold) {
-          if (fabs(val1) >= valid_threshold) {
+        if (std::fabs(val0) >= valid_threshold) {
+          if (std::fabs(val1) >= valid_threshold) {
             cur_fill = 0;
-            T diff = static_cast<T>(fabs(val1 - val0));
+            T diff = static_cast<T>(std::fabs(val1 - val0));
 
             if (diff >= valid_threshold && diff <= delta_z) {
               float filtered = val1 * alpha + val0 * (1.0f - alpha);
@@ -116,7 +120,7 @@ class MYNTEYE_API SpatialFilter : public BaseFilter {
         if (val1 >= valid_threshold) {
           if (val0 > valid_threshold) {
             cur_fill = 0;
-            T diff = static_cast<T>(fabs(val1 - val0));
+            T diff = static_cast<T>(std::fabs(val1 - val0));
 
             if (diff <= delta_z) {
               float filtered = val0 * alpha + val1 * (1.0f - alpha);
@@ -165,9 +169,9 @@ class MYNTEYE_API SpatialFilter : public BaseFilter {
         im0 = im[0];
         imw = im[_width];
 
-        // if ((fabs(im0) >= valid_threshold) && (fabs(imw) >= valid_threshold))  // NOLINT
+        // if ((std::fabs(im0) >= valid_threshold) && (std::fabs(imw) >= valid_threshold))  // NOLINT
         {
-          T diff = static_cast<T>(fabs(im0 - imw));
+          T diff = static_cast<T>(std::fabs(im0 - imw));
           if (diff < delta_z) {
             float filtered = imw * alpha + im0 * (1.f - alpha);
             im[_width] = static_cast<T>(filtered + round);
@@ -184,9 +188,9 @@ class MYNTEYE_API SpatialFilter : public BaseFilter {
         im0 = im[0];
         imw = im[_width];
 
-        if ((fabs(im0) >= valid_threshold) &&
-            (fabs(imw) >= valid_threshold)) {
-          T diff = static_cast<T>(fabs(im0 - imw));
+        if ((std::fabs(im0) >= valid_threshold) &&
+            (std::fabs(imw) >= valid_threshold)) {
+          T diff = static_cast<T>(std::fabs(im0 - imw));
           if (diff < delta_z) {
             float filtered = im0 * alpha + imw * (1.f - alpha);
             im[0] = static_cast<T>(filtered + round);
