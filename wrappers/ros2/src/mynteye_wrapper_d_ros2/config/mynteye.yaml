@@ -8,6 +8,9 @@ mynteye_ros2_node:
     # STREAM_2560x720 can expose left+right color, but depth is not supported
     # by all D1000 firmware/device combinations.
     stream_mode: 2
+    # bgr8 is convenient for viewing and bag replay. Set yuyv to reduce CPU
+    # and disk bandwidth when downstream tools can handle that encoding.
+    color_encoding: bgr8
     color_stream_format: 1
     depth_stream_format: 1
     state_ae: true
@@ -29,3 +32,5 @@ mynteye_ros2_node:
     depth_topic: mynteye/depth/image_raw
     depth_color_topic: mynteye/depth/image_color
     imu_topic: mynteye/imu/data_raw
+    qos_depth: 10
+    qos_reliable: false

@@ -113,6 +113,7 @@ class MynteyeRos2Node : public rclcpp::Node {
     declare_parameter<int>("dev_mode", 2);
     declare_parameter<int>("color_mode", 0);
     declare_parameter<int>("stream_mode", 3);
+    declare_parameter<std::string>("color_encoding", "bgr8");
     declare_parameter<int>("color_stream_format", 1);
     declare_parameter<int>("depth_stream_format", 1);
     declare_parameter<bool>("state_ae", true);
@@ -134,6 +135,8 @@ class MynteyeRos2Node : public rclcpp::Node {
 	    declare_parameter<std::string>("depth_topic", "mynteye/depth/image_raw");
 	    declare_parameter<std::string>("depth_color_topic", "mynteye/depth/image_color");
 	    declare_parameter<std::string>("imu_topic", "mynteye/imu/data_raw");
+	    declare_parameter<int>("qos_depth", 10);
+	    declare_parameter<bool>("qos_reliable", false);
 	  }
 
   void load_params() {
@@ -142,6 +145,7 @@ class MynteyeRos2Node : public rclcpp::Node {
     dev_mode_ = get_parameter("dev_mode").as_int();
     color_mode_ = get_parameter("color_mode").as_int();
     stream_mode_ = get_parameter("stream_mode").as_int();
+    color_encoding_ = get_parameter("color_encoding").as_string();
     color_stream_format_ = get_parameter("color_stream_format").as_int();
     depth_stream_format_ = get_parameter("depth_stream_format").as_int();
     state_ae_ = get_parameter("state_ae").as_bool();
@@ -163,6 +167,8 @@ class MynteyeRos2Node : public rclcpp::Node {
 	    depth_topic_ = get_parameter("depth_topic").as_string();
 	    depth_color_topic_ = get_parameter("depth_color_topic").as_string();
 	    imu_topic_ = get_parameter("imu_topic").as_string();
+	    qos_depth_ = get_parameter("qos_depth").as_int();
+	    qos_reliable_ = get_parameter("qos_reliable").as_bool();
 	  }
 
   void open_camera() {
@@ -213,7 +219,14 @@ class MynteyeRos2Node : public rclcpp::Node {
   }
 
   void create_publishers() {
-    auto qos = rclcpp::SensorDataQoS();
+    auto qos = rclcpp::QoS(rclcpp::KeepLast(
+        static_cast<std::size_t>(std::max(1, qos_depth_))));
+    qos.durability_volatile();
+    if (qos_reliable_) {
+      qos.reliable();
+    } else {
+      qos.best_effort();
+    }
     if (publish_left_ && left_enabled_) {
       left_pub_ = create_publisher<sensor_msgs::msg::Image>(left_topic_, qos);
       left_info_pub_ = create_publisher<sensor_msgs::msg::CameraInfo>(left_topic_ + "/camera_info", qos);
@@ -276,13 +289,23 @@ class MynteyeRos2Node : public rclcpp::Node {
     if (!data.img) {
       return;
     }
-    auto bgr_image = data.img->To(ImageFormat::COLOR_BGR);
-    cv::Mat bgr = image_to_mat(bgr_image);
+    Image::pointer image;
+    std::string encoding;
+    if (color_encoding_ == sensor_msgs::image_encodings::YUYV) {
+      image = data.img->format() == ImageFormat::IMAGE_YUYV
+          ? data.img
+          : data.img->To(ImageFormat::IMAGE_YUYV);
+      encoding = sensor_msgs::image_encodings::YUYV;
+    } else {
+      image = data.img->To(ImageFormat::COLOR_BGR);
+      encoding = sensor_msgs::image_encodings::BGR8;
+    }
+    cv::Mat color = image_to_mat(image);
     std_msgs::msg::Header header;
     header.stamp = stamp;
     header.frame_id = frame_id;
     info.header = header;
-    auto msg = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, bgr).toImageMsg();
+    auto msg = cv_bridge::CvImage(header, encoding, color).toImageMsg();
     pub->publish(*msg);
     info_pub->publish(info);
   }
@@ -382,6 +405,7 @@ class MynteyeRos2Node : public rclcpp::Node {
   int dev_mode_{2};
   int color_mode_{0};
   int stream_mode_{3};
+  int qos_depth_{10};
   int color_stream_format_{1};
 	  int depth_stream_format_{1};
 	  int ir_intensity_{4};
@@ -394,6 +418,7 @@ class MynteyeRos2Node : public rclcpp::Node {
 	  bool publish_depth_{true};
 	  bool publish_depth_color_{true};
 	  bool publish_imu_{true};
+	  bool qos_reliable_{false};
   bool left_enabled_{false};
   bool right_enabled_{false};
   bool depth_enabled_{false};
@@ -407,6 +432,7 @@ class MynteyeRos2Node : public rclcpp::Node {
 	  std::string depth_topic_;
 	  std::string depth_color_topic_;
 	  std::string imu_topic_;
+	  std::string color_encoding_;
 	};
 
 int main(int argc, char** argv) {
