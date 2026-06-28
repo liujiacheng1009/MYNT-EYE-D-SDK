@@ -62,10 +62,20 @@ bool mkdir(const std::string &path) {
   if (size <= 0)
     return false;
   std::string p{dirs[0]};
+  std::size_t begin = 1;
+  if (p.empty()) {
+    p = MYNTEYE_OS_SEP;
+    begin = 1;
+  }
   if (!_mkdir(p))
     return false;
-  for (std::size_t i = 1; i < size; i++) {
-    p.append(MYNTEYE_OS_SEP).append(dirs[i]);
+  for (std::size_t i = begin; i < size; i++) {
+    if (dirs[i].empty())
+      continue;
+    if (p != MYNTEYE_OS_SEP) {
+      p.append(MYNTEYE_OS_SEP);
+    }
+    p.append(dirs[i]);
     if (!_mkdir(p))
       return false;
   }
