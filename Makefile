@@ -32,6 +32,10 @@ help:
 	@echo "  make install   build and install"
 	@echo "  make samples   build samples"
 	@echo "  make ros       build ros wrapper"
+	@echo "  make ros2      build ros2 wrapper"
+	@echo "  make record-native   record SDK camera/depth/IMU files"
+	@echo "  make record-ros2-bag record ROS 2 camera/depth/IMU bag"
+	@echo "  make record-ros1-bag record ROS 1 camera/depth/IMU bag"
 	@echo "  make apidoc    build api doc"
 	@echo "  make pkg       package sdk"
 	@echo "  make clean     clean"
@@ -148,6 +152,37 @@ cleanros:
 	@$(call rm,./wrappers/ros/src/CMakeLists.txt)
 
 .PHONY: ros cleanros
+
+ros2: install
+ifeq ($(HOST_OS),Linux)
+	@$(call echo,Make $@)
+	@if [ -f "$${ROS_SETUP:-/opt/ros/jazzy/setup.bash}" ]; then \
+		. "$${ROS_SETUP:-/opt/ros/jazzy/setup.bash}"; \
+	fi; \
+	cd ./wrappers/ros2 && colcon build --symlink-install
+endif
+
+.PHONY: ros2
+
+record-native: samples
+ifeq ($(HOST_OS),Linux)
+	@$(call echo,Make $@)
+	@./scripts/record_native.sh
+endif
+
+record-ros2-bag: ros2
+ifeq ($(HOST_OS),Linux)
+	@$(call echo,Make $@)
+	@./scripts/record_ros2_bag.sh
+endif
+
+record-ros1-bag: ros
+ifeq ($(HOST_OS),Linux)
+	@$(call echo,Make $@)
+	@./scripts/record_ros1_bag.sh
+endif
+
+.PHONY: record-native record-ros2-bag record-ros1-bag
 
 # doc
 
