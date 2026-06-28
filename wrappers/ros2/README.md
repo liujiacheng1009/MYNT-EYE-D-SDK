@@ -22,7 +22,7 @@ Ubuntu 24.10 system.
 First build and install the SDK into the local `_install` directory:
 
 ```bash
-cd /home/jc/Downloads/MYNT-EYE-D-SDK
+cd MYNT-EYE-D-SDK
 cmake -S . -B _build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/_install
 cmake --build _build -j2
 cmake --install _build --prefix $PWD/_install
@@ -32,10 +32,17 @@ Then build the ROS 2 workspace:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-cd /home/jc/Downloads/MYNT-EYE-D-SDK/wrappers/ros2
-rosdep install --from-paths src --ignore-src -r -y
+cd wrappers/ros2
 colcon build --symlink-install
 source install/setup.bash
+```
+
+Optionally install ROS dependencies with `rosdep` after it has been initialized
+and updated:
+
+```bash
+cd wrappers/ros2
+rosdep install --from-paths src --ignore-src -r -y
 ```
 
 ## Run
