@@ -170,6 +170,23 @@ source /opt/ros/jazzy/setup.bash
 如果只是看到 MCAP `no message index` warning，也可以用同一个脚本重写一份带索引的
 bag；已是 `bgr8` 的图像会原样保留。
 
+## RT-MonSter++ Intel NPU demos
+
+`samples/rt_monster_npu` 提供两个面向 Intel NPU 3720 的双目 demo：Python
+离线图片推理，以及 MYNT EYE 实时取流的 C++ 推理。模型输入为 `512x384`，输出视差
+会恢复到相机的 `640x480` 分辨率。详细依赖、模型校验值和运行命令见
+[`samples/rt_monster_npu/README.md`](samples/rt_monster_npu/README.md)。
+
+```bash
+export OPENVINO_PYTHON=/path/to/openvino-venv/bin/python
+
+# 真实 NPU 离线回归测试 + C++ demo 构建测试
+./samples/rt_monster_npu/scripts/test.sh
+
+# MYNT EYE 双目实时 NPU 推理
+./samples/rt_monster_npu/scripts/run_live.sh
+```
+
 ## Mirrors
 
 国内镜像：[码云](https://gitee.com/mynt/MYNT-EYE-D-SDK)。
